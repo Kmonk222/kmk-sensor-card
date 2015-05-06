@@ -4,7 +4,7 @@
       and air quality, it would just need to be added to the device. 
       ***If the brokers aren't acquiring values, the only display will be the
       core-header-panel with a title.
-      Kevin Monk May 5, 2015 -->
+      Kevin Monk May 6, 2015 -->
       
 
 <link rel="import" href="../polymer/polymer.html">
@@ -13,27 +13,27 @@
 <script src="../paho-mqtt-js/mqttws31.js"></script>
 
 
-<polymer-element name="sensor-card" attributes="topic">
+<polymer-element name="sensor-card" attributes="topic ip port">
   <template>
     <link rel="stylesheet" href="styles.css">
-    <div center vertical layout class="item" id="tempCard">
+    <div layout class="item" id="tempCard">
       <paper-shadow z="3">
         <!-- card is formatted in two rows, each with two cells. 2x2 card-->
         <div flex class="card">
-          <core-header-panel main id="header"><h4 style= text-align:center;>Sensors</h4></core-header-panel>
+          <core-header-panel main id="header"><h2 style= text-align:center;>Sensors</h4></core-header-panel>
           <div class="row">
             <!-- If a message is sent, show the sensor-->
             <template if="{{change.tempC == 'yes'}}"> 
               <div class="cell">
-                <p>Temperature:</p>
-                <p>{{realTemp}}</p>
+                <p>Temperature: </p>
+                <p>{{realTemp}} </p>
               </div>
             </template>
             <!-- If a message is sent, show the sensor-->
             <template if="{{change.luxC == 'yes'}}">
               <div class="cell">
-                <p>Lux:</p>
-                <p>{{realLux}}</p>
+                <p>Lux: </p>
+                <p>{{realLux}} </p>
               </div>
             </template>
           </div>
@@ -41,15 +41,15 @@
             <!-- If a message is sent, show the sensor-->
             <template if="{{change.humidityC == 'yes'}}">
               <div class="cell">
-                <p>Humidity:</p>
-                <p>{{realHumidity}}</p>
+                <p>Humidity: </p>
+                <p>{{realHumidity}} </p>
               </div>
             </template>
             <!-- If a message is sent, show the sensor-->
             <template if="{{change.airC == 'yes'}}">
               <div class="cell">
-                <p>Air Quality:</p>
-                <p>{{realAirquality}}</p>
+                <p>Air Quality: </p>
+                <p>{{realAirquality}} </p>
               </div>
             </template>
           </div>
@@ -76,13 +76,19 @@
           humidityC: '',
           airC: '',
         },
+
+        //attributes
         topic: '',
+        ip: 'localhost',
+        port: 9001,
 
         ready: function() {
           //create the client and pull in the topic
           var topic = this.topic;
-          var client_id = 'kevin' + parseInt(Math.random() * 1000, 10);
-          var client = new Paho.MQTT.Client('146.148.90.97', 9001, '/mqtt', client_id);
+          var ip = this.ip;
+          var port = this.port;
+          var client_id = 'abcd' + parseInt(Math.random() * 1000, 10);
+          var client = new Paho.MQTT.Client(ip, port, '/mqtt', client_id);
 
           var onConnect = function() {
             //create the subtopics first
