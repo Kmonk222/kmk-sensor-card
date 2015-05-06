@@ -1,0 +1,161 @@
+<!--  This element pulls in values from MQTT brokers. The actual sensors
+      are pushed to the broker using arduino. Currently it will only display 
+      temperature and lux values, but there are brokers created for humidity 
+      and air quality, it would just need to be added to the device. 
+      ***If the brokers aren't acquiring values, the only display will be the
+      core-header-panel with a title.
+      Kevin Monk May 5, 2015 -->
+      
+
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../core-elements/core-elements.html"> 
+<link rel="import" href="../paper-elements/paper-elements.html">
+<script src="../paho-mqtt-js/mqttws31.js"></script>
+
+
+<polymer-element name="sensor-card" attributes="topic">
+  <template>
+    <link rel="stylesheet" href="styles.css">
+    <div center vertical layout class="item" id="tempCard">
+      <paper-shadow z="3">
+        <!-- card is formatted in two rows, each with two cells. 2x2 card-->
+        <div flex class="card">
+          <core-header-panel main id="header"><h4 style= text-align:center;>Sensors</h4></core-header-panel>
+          <div class="row">
+            <!-- If a message is sent, show the sensor-->
+            <template if="{{change.tempC == 'yes'}}"> 
+              <div class="cell">
+                <p>Temperature:</p>
+                <p>{{realTemp}}</p>
+              </div>
+            </template>
+            <!-- If a message is sent, show the sensor-->
+            <template if="{{change.luxC == 'yes'}}">
+              <div class="cell">
+                <p>Lux:</p>
+                <p>{{realLux}}</p>
+              </div>
+            </template>
+          </div>
+          <div class="row">
+            <!-- If a message is sent, show the sensor-->
+            <template if="{{change.humidityC == 'yes'}}">
+              <div class="cell">
+                <p>Humidity:</p>
+                <p>{{realHumidity}}</p>
+              </div>
+            </template>
+            <!-- If a message is sent, show the sensor-->
+            <template if="{{change.airC == 'yes'}}">
+              <div class="cell">
+                <p>Air Quality:</p>
+                <p>{{realAirquality}}</p>
+              </div>
+            </template>
+          </div>
+        </div>
+      </paper-shadow>
+    </div>
+  </template>
+  <script>
+    (function () {
+      Polymer({
+        realTemp: '',
+        realLux: '',
+        realHumidity: '',
+        realAirquality: '',
+        sensors: {
+          tempS: null,
+          luxS: null,
+          humidityS: null,
+          airS: null,
+        },
+        change: {
+          tempC: '',
+          luxC: '',
+          humidityC: '',
+          airC: '',
+        },
+        topic: '',
+
+        ready: function() {
+          //create the client and pull in the topic
+          var topic = this.topic;
+          var client_id = 'kevin' + parseInt(Math.random() * 1000, 10);
+          var client = new Paho.MQTT.Client('146.148.90.97', 9001, '/mqtt', client_id);
+
+          var onConnect = function() {
+            //create the subtopics first
+            this.sensors.tempS = topic + '/temperature';
+            this.sensors.luxS = topic + '/lux';
+            this.sensors.humidityS = topic + '/humidity';
+            this.sensors.airS = topic + '/airquality';
+            this.confirm = console.log('Connected');
+
+            /**********Four Individual Initializations**********/
+
+            client.subscribe(this.sensors.tempS);
+            tMessage = new Paho.MQTT.Message('temperature');
+            tMessage.destinationName = this.sensors.tempS;
+            client.send(tMessage);
+
+            client.subscribe(this.sensors.luxS)
+            lMessage = new Paho.MQTT.Message('lux');
+            lMessage.destinationName = this.sensors.luxS;
+            client.send(lMessage);
+
+            client.subscribe(this.sensors.humidityS)
+            hMessage = new Paho.MQTT.Message('humidity');
+            hMessage.destinationName = this.sensors.humidityS;
+            client.send(hMessage);
+
+            client.subscribe(this.sensors.airS)
+            aMessage = new Paho.MQTT.Message('airquality');
+            aMessage.destinationName = this.sensors.airS;
+            client.send(aMessage);
+          }; 
+
+          var onConnectionLost = function(responseObject) {
+            if (responseObject.errorCode !== 0) {
+              this.error = 'onConnectionLost: ' + responseObject.errorMessage;
+            };
+          }; 
+
+          var onMessageArrived = function(response) {
+            //check the message for the sensor type
+            switch(response.destinationName) {
+              case this.sensors.tempS:
+                this.realTemp = response.payloadString;
+                if (response.payloadString != 'temperature') {
+                  this.change.tempC = 'yes';
+                }
+                break;
+              case this.sensors.luxS:
+                this.realLux = response.payloadString;
+                if (response.payloadString != 'lux') {
+                  this.change.luxC = 'yes';
+                }
+                break;
+              case this.sensors.humidityS:
+                this.realHumidity = response.payloadString;
+                if (response.payloadString != 'humidity') {
+                  this.change.humidityC = 'yes';
+                }
+                break;
+              case this.sensors.airS:
+                this.realAirquality = response.payloadString;
+                if (response.payloadString != 'airquality') {
+                  this.change.airC = 'yes';
+                }
+                break;
+            };          
+          }; 
+
+          client.onConnectionLost = onConnectionLost.bind(this);
+          client.onMessageArrived = onMessageArrived.bind(this);
+          client.connect({onSuccess:onConnect.bind(this)});
+        },
+      });
+    })();
+  </script>
+</polymer-element>
