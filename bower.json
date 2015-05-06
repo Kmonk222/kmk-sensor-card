@@ -7,7 +7,8 @@
   "dependencies": {
     "core-elements": "Polymer/core-elements#^0.5.1",
     "paper-elements": "Polymer/paper-elements#^0.5.1",
-    "polymer": "Polymer/polymer#^0.5.1"
+    "polymer": "Polymer/polymer#^0.5.1",
+    "paho-mqtt-js": "~1.0.1"
   },
   "devDependencies": {
     "web-component-tester": "Polymer/web-component-tester#^2.0.0"
